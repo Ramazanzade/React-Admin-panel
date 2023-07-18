@@ -1,115 +1,157 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, StyleSheet, TouchableOpacity } from 'react-native';
+// import React, { useState , useEffect} from 'react';
+// import { View, Button, TouchableOpacity, Text, Image } from 'react-native';
+// import axios from 'axios';
+// import * as ImagePicker from 'expo-image-picker';
+// import * as Permissions from 'expo-permissions';
+// const Delete = ({ navigation }) => {
+//   const [selectedFile, setSelectedFile] = useState(null);
+//   const [viewFile, setViewFile] = useState(null);
+//   const [uploadError, setUploadError] = useState(null);
 
-const Delete = ({ name, id, handleDelete }) => {
-  const [modalVisible, setModalVisible] = useState(false);
-  const [products, setProducts] = useState([]);
 
-  useEffect(() => {
-    getProducts();
-  }, [products]);
 
-  const getProducts = async () => {
-    const response = await fetch('https://6406b829862956433e57f877.mockapi.io/data');
-    const data = await response.json();
-    setProducts(data);
+//   const selectFile = async () => {
+//     try {
+//       const result = await ImagePicker.launchImageLibraryAsync({
+//         mediaTypes: ImagePicker.MediaTypeOptions.Images,
+//         allowsEditing: true,
+//         quality: 1,
+//       });
+  
+//       if (!result.canceled) {
+//         const selectedAsset = result.assets[0];
+//       const { uri, type , name} = selectedAsset;
+
+//       setSelectedFile({
+//         uri,
+//         type,
+//         name
+//       });
+//       console.log('Selected file URI:', uri);
+//       console.log('Selected file type:', type);
+//       console.log('Selected file type:', name);
+//       } else {
+//         console.log('Image selection cancelled');
+//       }
+//     } catch (error) {
+//       console.log('Error selecting image:', error);
+//     }
+//   };
+//   const uploadFile = async () => {
+//     try {
+//       const formData = new FormData();
+//       formData.append('file',selectedFile);
+  
+//       const response = await axios.post(
+//         'https://marvel-backend2.onrender.com/api/file/file',
+//         formData,
+//         {
+//           headers: {
+//             'Content-Type': 'multipart/form-data',
+//           },
+//         }
+//       );
+  
+//       console.log(response.data);
+  
+//       if (response.data && response.data.length > 0) {
+//         setViewFile(response.data[0].url);
+//         console.log('File uploaded successfully:', response.data);
+//       } else {
+//         console.log('Error uploading file:', response.data);
+//         setUploadError('Error uploading file. Please try again.');
+//       }
+//     } catch (err) {
+//       console.log('Error uploading file:', err);
+//       setUploadError('Error uploading file. Please try again.');
+//     }
+//   };
+  
+
+//   return (
+//     <View>
+//       <TouchableOpacity
+//         onPress={() => navigation.navigate('Chat')}
+//         style={{
+//           backgroundColor: '#D1CAB9',
+//           width: 100,
+//           height: 50,
+//           borderRadius: 10,
+//         }}
+//       >
+//         <Text style={{ textAlign: 'center', marginTop: 12 }}> + Chat</Text>
+//       </TouchableOpacity>
+
+//       <Button title="Select File" onPress={selectFile} />
+//       {selectedFile && <Button title="Upload File" onPress={uploadFile} />}
+
+//       {viewFile && (
+//         <View>
+//           <Text>Uploaded File:</Text>
+//           <Image
+//             source={{ uri: viewFile }} 
+//             style={{ width: 200, height: 200 }}
+//           />
+//         </View>
+//       )}
+
+//       {uploadError && <Text>{uploadError}</Text>}
+//     </View>
+//   );
+// };
+
+// export default Delete;
+
+
+import React, { useState } from 'react';
+import axios from 'axios';
+
+const Delete = () => {
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploadError, setUploadError] = useState(null);
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    setSelectedFile(file);
+  };
+
+  const uploadFile = async () => {
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      const response = await axios.post(
+        'https://marvel-backend2.onrender.com/api/file/file',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      console.log(response.data);
+
+      if (response.data && response.data.length > 0) {
+        console.log('File uploaded successfully:', response.data);
+      } else {
+        console.log('Error uploading file:', response.data);
+        setUploadError('Error uploading file. Please try again.');
+      }
+    } catch (err) {
+      console.log('Error uploading file:', err);
+      setUploadError('Error uploading file. Please try again.');
+    }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.name}>{name}</Text>
-      <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.deleteButton}>
-        <Text style={styles.deleteButtonText}>Delete</Text>
-      </TouchableOpacity>
-      <Modal
-        visible={modalVisible}
-        animationType="fade"
-        transparent={true}
-        onRequestClose={() => setModalVisible(false)}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modal}>
-            <Text style={styles.modalTitle}>Are you sure you want to delete this product?</Text>
-            <View style={styles.modalButtonContainer}>
-              <TouchableOpacity onPress={() => setModalVisible(false)} style={[styles.modalButton, styles.cancelButton]}>
-                <Text style={styles.modalButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleDelete(itemid)} style={[styles.modalButton, styles.deleteButton]}>
-                <Text style={styles.modalButtonText}>Delete</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-    </View>
+    <div>
+      <input type="file" onChange={handleFileChange} />
+      <button onClick={uploadFile}>Upload File</button>
+      {uploadError && <p>{uploadError}</p>}
+    </div>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  deleteButton: {
-    backgroundColor: 'red',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 5,
-  },
-  deleteButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  modal: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 5,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  modalButtonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
-  modalButton: {
-    paddingVertical: 10,
-    borderRadius: 5,
-    flex: 1,
-    marginHorizontal: 5,
-  },
-  cancelButton: {
-    backgroundColor: '#ccc',
-  },
-  deleteButton: {
-    backgroundColor: 'red',
-  },
-  modalButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-});
-
 export default Delete;
+

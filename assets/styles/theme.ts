@@ -35,12 +35,14 @@ export default StyleSheet.create({
         marginBottom: 10,
       },
       item: {
-        marginBottom: 20,
+        marginBottom: 10,
         padding: 10,
         backgroundColor: '#F7F7F7',
         borderRadius: 5,
         elevation: 3,
-        // width:'80%'
+        borderBottomWidth:2,
+        borderBottomColor:'green',
+        // borderTopWidth:1
 
       },
       row: {
@@ -50,6 +52,8 @@ export default StyleSheet.create({
       text: {
         fontSize: 16,
         color: '#333',
+        textAlign:'center',
+        // margin:50
       },
       heading: {
         fontWeight: 'bold',
@@ -57,7 +61,7 @@ export default StyleSheet.create({
         color: '#555',
       },
       TouchableOpacity:{
-        backgroundColor: '#3498db',
+        backgroundColor: 'green',
         padding: 10,
         paddingHorizontal: 25,
         borderRadius: 4,
@@ -72,7 +76,8 @@ export default StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 16,
         textAlign: 'center',
-    paddingBottom:5
+    paddingBottom:5,
+    marginTop:-3
       },
       buttons: {
         flexDirection: 'row',

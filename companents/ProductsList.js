@@ -1,160 +1,132 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, Button } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Modal, TextInput } from 'react-native';
 import theme from '../assets/styles/theme';
 import axios from 'axios';
+import Delete from './Delete';
 
 
-function EditModal({ product, visible, onClose, onSave }) {
-    const [name, setName] = useState(product.name);
-    const [surname, setSurname] = useState(product.surname);
-    const [fin, setFin] = useState(product.fin);
-    const [work, setWork] = useState(product.work);
-    const [live, setLive] = useState(product.live);
-    const [age, setAge] = useState(product.age);
-  
-    const handleSave = () => {
-      onSave({ ...product, name, surname, fin, work, live, age });
-      onClose();
-    };
-  
-    return (
-      <Modal visible={visible} animationType="slide">
-        <View style={theme.modalContainer}>
-          <TextInput style={[theme.input, theme.inputFocused]} placeholder='Name' value={name} onChangeText={setName} />
-          <TextInput style={[theme.input, theme.inputFocused]} placeholder='Surname' value={surname} onChangeText={setSurname} />
-          <TextInput style={[theme.input, theme.inputFocused]} placeholder='Age' value={fin} onChangeText={setFin} />
-          <TextInput style={[theme.input, theme.inputFocused]} placeholder='Live' value={work} onChangeText={setWork} />
-          <TextInput style={[theme.input, theme.inputFocused]} placeholder='Work' value={live} onChangeText={setLive} />
-          <TextInput style={[theme.input, theme.inputFocused]} placeholder='Fin' value={age} onChangeText={setAge} />
-       <View style={theme.modalButtons}>
-       <TouchableOpacity onPress={handleSave} style={theme.button}>
-            <Text style={theme.buttonText}>Save</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={onClose} style={theme.button}>
-            <Text style={theme.buttonText}>Cancel</Text>
-          </TouchableOpacity>
-       </View>
-        </View>
-      </Modal>
-    );
-  }
-export default function ProductsList() {
+
+export default function ProductsList({ navigation }) {
   const [products, setProducts] = useState([]);
-  const [editingProduct, setEditingProduct] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
-  useEffect(() => {
-    getProducts();
-  }, []);
+  const [editedData, setEditedData] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const getProducts = async () => {
     try {
-      const response = await axios.get('http://localhost:8082/api/product/products');
+      const response = await axios.get(`https://fluffy-tarsier-c3f7df.netlify.app/api/user/`);
+      console.log('data');
       setProducts(response.data);
     } catch (error) {
-      console.log(error);
+      console.error('Error fetching products:', error);
+      console.log('catch');
     }
   };
 
+  useEffect(() => {
+    getProducts();
+  }, []);
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:8082/api/product/product/${id}`);
+      await axios.delete(`https://bankapi-2puz.onrender.com/api/user/delete/${id}`);
       getProducts();
     } catch (error) {
       console.error(error);
     }
   };
-  const handleEdit = (item) => {
-    setEditingProduct(item);
-    setModalVisible(true);
+  // const renderItem = ({ item }) => {
+  //   return (
+  //     <View style={{ flexDirection: 'row' }}>
+  //       <TouchableOpacity onPress={() => navigation.navigate("About", { data: item })} style={{ margin: 10, backgroundColor: '#C0D6EB', marginTop: 20, width: '80%' }}>
+  //         <View style={theme.item}>
+  //           <View style={theme.row}>
+  //             <Text style={theme.text}>{item.name} {item.surname}</Text>
+  //           </View>
+  //         </View>
+  //       </TouchableOpacity>
+  //       <TouchableOpacity onPress={() => handleEdit(item._id)} style={[theme.button, { alignContent: 'flex-end', alignItems: 'flex-end', height: 30, marginTop: 30, backgroundColor: 'green' }]}>
+  //       <Text style={[theme.buttonText, { fontSize: 15 , marginRight:5}]}>Edit</Text>
+  //     </TouchableOpacity>
+  //       <TouchableOpacity onPress={() => handleDelete(item._id)} style={[theme.button, { alignContent: 'flex-end', alignItems: 'flex-end', height: 30, marginTop: 30, backgroundColor: 'green' }]}>
+  //         <Text style={[theme.buttonText, { fontSize: 15 }]}>Delete</Text>
+  //       </TouchableOpacity>
+  //     </View>
 
+  //   );
+  // };
+  const handleEdit = (id) => {
+    const user = products.find(item => item._id === id);
+    setEditedData(user);
+    setIsModalVisible(true);
   };
-  
-  const handleSave = async (editedProduct) => {
+
+  const handleSave = async (id, editedData) => {
     try {
-      await axios.put(`http://localhost:8081/api/product/product/${editedProduct.id}`, editedProduct);
-      setEditingProduct(null);
-      setModalVisible(false);
-      getProducts();
+    const response = await axios.put(`https://bankapi-2puz.onrender.com/api/user/users/${id}`, editedData);
+    setProducts(products.map(item => {
+    if (item._id === id) {
+    return response.data;
+    }
+    return item;
+    }));
+    setIsModalVisible(false);
     } catch (error) {
-      console.error(error);
+    console.error('Error updating user:', error);
     }
-  };
-  const search = async (event) => {
-    const key = event.target.value;
-    if (key) {
-      try {
-        const result = await axios.get(`http://localhost:8081/api/product/product/:id/${key}`);
-        const data = result.data;
-        if (data && data.value > 0) {
-          setProducts(data);
-        } else {
-          console.log("No data found");
-        }
-      } catch (error) {
-        console.log("Error fetching data: ", error);
-      }
-    } else {
-      console.log("Please enter a search key");
-    }
-  };
-  const renderItem = ({ item }) => {
-    console.log('egdhgsd', item);
-    return (
-      <View style={theme.item}>
-        <View style={theme.row}>
-          <Text style={[theme.text, theme.heading]}>Name:</Text>
-          <Text style={theme.text}>{item.name}</Text>
-        </View>
-        <View style={theme.row}>
-          <Text style={[theme.text, theme.heading]}>Surname:</Text>
-          <Text style={theme.text}>{item.surname}</Text>
-        </View>
-        <View style={theme.row}>
-          <Text style={[theme.text, theme.heading]}>Fin:</Text>
-          <Text style={theme.text}>{item.fin}</Text>
-        </View>
-        <View style={theme.row}>
-          <Text style={[theme.text, theme.heading]}>Work:</Text>
-          <Text style={theme.text}>{item.work}</Text>
-        </View>
-        <View style={theme.row}>
-          <Text style={[theme.text, theme.heading]}>Live:</Text>
-          <Text style={theme.text}>{item.live}</Text>
-        </View>
-        <View style={theme.row}>
-          <Text style={[theme.text, theme.heading]}>Age:</Text>
-          <Text style={theme.text}>{item.age}</Text>
-        </View>
-        <View style={theme.buttons}>
-          <TouchableOpacity onPress={() => handleDelete(item._id)} style={theme.button}>
-            <Text style={theme.buttonText}>Delete</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => handleEdit(item)} style={theme.button}>
-            <Text style={theme.buttonText}>Update</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  };
+    };
   return (
     <View style={theme.container}>
-      <Text style={theme.title}>ProductsList</Text>
-      <TextInput
-        style={theme.Searchinput}
-        onChange={search}
-        placeholder='Search'
-        />
-      <FlatList data={products} renderItem={renderItem} keyExtractor={item => item.id} />
-      {editingProduct && (
-        <EditModal
-          product={editingProduct}
-          visible={modalVisible}
-          onClose={() => setModalVisible(false)}
-          onSave={handleSave}
-        />)}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 30 }}>
+        {/* <TouchableOpacity onPress={() => navigation.navigate("Home")} style={{ backgroundColor: '#D1CAB9', width: 100, height: 50, borderRadius: 10 }}>
+          <Text style={{ textAlign: 'center', marginTop: 12 }}> + Add user</Text>
+        </TouchableOpacity> */}
+        {/* <TouchableOpacity onPress={() => navigation.navigate("New")} style={{ backgroundColor: '#D1CAB9', width: 100, height: 50, borderRadius: 10 }}>
+          <Text style={{ textAlign: 'center', marginTop: 12 }}> + Add News</Text>
+        </TouchableOpacity> */}
+        <TouchableOpacity onPress={() => navigation.navigate("Chat")} style={{ backgroundColor: '#D1CAB9', width: 100, height: 50, borderRadius: 10 }}>
+          <Text style={{ textAlign: 'center', marginTop: 12 }}> + Chat</Text>
+        </TouchableOpacity>
+
+
+
+      </View>
+      {/* <FlatList
+        data={products}
+        renderItem={renderItem}
+        keyExtractor={item => item.id} /> */}
+
+
+
+{/* <Delete></Delete> */}
+
+
+
+
+
+
+<Modal visible={isModalVisible} animationType="slide">
+  <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+    <TextInput value={editedData?.name} onChangeText={(text) => setEditedData({ ...editedData, name: text })} placeholder="Name" style={{ borderBottomWidth: 1, padding: 10, width:'80%' , margin:5}} />
+    <TextInput value={editedData?.surname} onChangeText={(text) => setEditedData({ ...editedData, surname: text })} placeholder="Surname" style={{ borderBottomWidth: 1, padding: 10 , width:'80%' , margin:5}} />
+    <TextInput value={editedData?.work} onChangeText={(text) => setEditedData({ ...editedData, work: text })} placeholder="Surname" style={{ borderBottomWidth: 1, padding: 10 , width:'80%' , margin:5 }} />
+    <TextInput value={editedData?.live} onChangeText={(text) => setEditedData({ ...editedData, live: text })} placeholder="Surname" style={{ borderBottomWidth: 1, padding: 10 , width:'80%' , margin:5}} />
+    <TextInput value={editedData?.digital} onChangeText={(text) => setEditedData({ ...editedData, digital: text })} placeholder="Surname" style={{ borderBottomWidth: 1, padding: 10 , width:'80%' , margin:5 }} />
+    <TextInput value={editedData?.amount} onChangeText={(text) => setEditedData({ ...editedData, amount: text })} placeholder="Surname" style={{ borderBottomWidth: 1, padding: 10 , width:'80%' , margin:5}} />
+    <TextInput value={editedData?.age} onChangeText={(text) => setEditedData({ ...editedData, age: text })} placeholder="Surname" style={{ borderBottomWidth: 1, padding: 10 , width:'80%' , margin:5}} />
+    <TextInput value={editedData?.fin} onChangeText={(text) => setEditedData({ ...editedData, fin: text })} placeholder="Surname" style={{ borderBottomWidth: 1, padding: 10 , width:'80%' , margin:5}} />
+    <TextInput value={editedData?.email} onChangeText={(text) => setEditedData({ ...editedData, email: text })} placeholder="Surname" style={{ borderBottomWidth: 1, padding: 10 , width:'80%' , margin:5}} />
+    <TextInput value={editedData?.digital1} onChangeText={(text) => setEditedData({ ...editedData, digital1: text })} placeholder="Surname" style={{ borderBottomWidth: 1, padding: 10 , width:'80%' , margin:5}} />
+   <View style={{flexDirection:'row', }}>
+   <TouchableOpacity onPress={() => handleSave(editedData?._id, editedData)} style={[theme.button, { alignContent: 'flex-end', alignItems: 'flex-end', height: 30, marginTop: 50, backgroundColor: 'green' }]}>
+      <Text style={{color:'#FFFFFF',marginRight:5}}>Save</Text>
+    </TouchableOpacity>
+    <TouchableOpacity onPress={() => setIsModalVisible(false)} style={[theme.button, { alignContent: 'flex-end', alignItems: 'flex-end', height: 30, marginTop: 50, backgroundColor: 'green' }]}>
+      <Text style={{color:'#FFFFFF'}}>Cancel</Text>
+    </TouchableOpacity>
+   </View>
+  </View>
+</Modal>
+
+
     </View>
   );
 }
-
-
-    // const sortedData = data.sort((a, b) => a.surname.localeCompare(b.surname));product/:id
